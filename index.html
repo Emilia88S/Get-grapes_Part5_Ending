@@ -1,0 +1,699 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grape Adventure - Part 5</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+        background: black;
+        color: white;
+    }
+
+    #game {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+        overflow: hidden;
+        background: #222;
+    }
+
+    /* BLACK SCREEN / TITLES */
+    #blackScreen {
+        position: absolute;
+        inset: 0;
+        background: black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+        opacity: 1;
+        transition: opacity 1s;
+    }
+
+    #title {
+        font-size: clamp(35px, 7vw, 90px);
+        font-weight: bold;
+        text-align: center;
+        letter-spacing: 4px;
+    }
+
+    /* WORLD */
+    #world {
+        position: absolute;
+        inset: 0;
+        display: none;
+        background:
+            linear-gradient(
+                rgba(60, 60, 60, 0.35),
+                rgba(20, 20, 20, 0.65)
+            ),
+            #4d493f;
+    }
+
+    /* DESTROYED VILLAGE */
+    .ground {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 35%;
+        background: #302d28;
+    }
+
+    .ruin {
+        position: absolute;
+        bottom: 35%;
+        width: 150px;
+        height: 130px;
+        background: #4b4037;
+        border: 5px solid #29241f;
+    }
+
+    .ruin::before {
+        content: "";
+        position: absolute;
+        top: -35px;
+        left: -15px;
+        width: 175px;
+        height: 55px;
+        background: #2a2521;
+        transform: rotate(-8deg);
+    }
+
+    .ruin1 {
+        left: 8%;
+    }
+
+    .ruin2 {
+        left: 38%;
+        transform: scale(0.8);
+    }
+
+    .ruin3 {
+        right: 8%;
+        transform: scale(1.1);
+    }
+
+    /* CHARACTERS */
+    .character {
+        position: absolute;
+        width: 70px;
+        height: 90px;
+        bottom: 35%;
+        text-align: center;
+        font-size: 55px;
+        user-select: none;
+    }
+
+    #duck {
+        left: 38%;
+    }
+
+    #wizard {
+        left: 50%;
+    }
+
+    .name {
+        position: absolute;
+        top: 65px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 14px;
+        background: rgba(0,0,0,0.7);
+        padding: 3px 8px;
+        border-radius: 5px;
+        white-space: nowrap;
+    }
+
+    /* DIALOGUE */
+    #dialogueBox {
+        position: absolute;
+        left: 5%;
+        right: 5%;
+        bottom: 5%;
+        min-height: 120px;
+        background: rgba(0,0,0,0.88);
+        border: 3px solid white;
+        border-radius: 12px;
+        padding: 20px;
+        display: none;
+        z-index: 20;
+    }
+
+    #speaker {
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    #dialogue {
+        font-size: 18px;
+        line-height: 1.5;
+    }
+
+    #continueButton {
+        position: absolute;
+        right: 15px;
+        bottom: 12px;
+        padding: 8px 18px;
+        border: none;
+        border-radius: 7px;
+        background: white;
+        color: black;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    /* SURVIVORS */
+    .survivor {
+        position: absolute;
+        font-size: 42px;
+        display: none;
+        z-index: 10;
+    }
+
+    #survivor1 {
+        left: 15%;
+        bottom: 37%;
+    }
+
+    #survivor2 {
+        left: 23%;
+        bottom: 37%;
+    }
+
+    #survivor3 {
+        right: 20%;
+        bottom: 37%;
+    }
+
+    /* CAVE */
+    #cave {
+        position: absolute;
+        width: 330px;
+        height: 250px;
+        left: 50%;
+        bottom: 10%;
+        transform: translateX(-50%);
+        background: #050505;
+        border-radius: 50% 50% 0 0;
+        border: 10px solid #171717;
+        display: none;
+        z-index: 5;
+        box-shadow: 0 0 50px rgba(0,0,0,0.9);
+    }
+
+    #caveText {
+        position: absolute;
+        top: 30%;
+        width: 100%;
+        text-align: center;
+        font-size: 18px;
+        color: #aaa;
+    }
+
+    /* FADE */
+    #fade {
+        position: absolute;
+        inset: 0;
+        background: black;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 200;
+        transition: opacity 1.5s;
+    }
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+    <!-- BLACK SCREEN -->
+    <div id="blackScreen">
+        <div id="title">WAKE UP</div>
+    </div>
+
+    <!-- WORLD -->
+    <div id="world">
+
+        <div class="ground"></div>
+
+        <div class="ruin ruin1"></div>
+        <div class="ruin ruin2"></div>
+        <div class="ruin ruin3"></div>
+
+        <!-- DUCK -->
+        <div id="duck" class="character">
+            🦆
+            <div class="name">Duck</div>
+        </div>
+
+        <!-- WIZARD -->
+        <div id="wizard" class="character">
+            🧙
+            <div class="name">Wizard</div>
+        </div>
+
+        <!-- SURVIVORS -->
+        <div id="survivor1" class="survivor">🧑</div>
+        <div id="survivor2" class="survivor">👩</div>
+        <div id="survivor3" class="survivor">🧒</div>
+
+        <!-- CAVE -->
+        <div id="cave">
+            <div id="caveText">The cave...</div>
+        </div>
+
+        <!-- DIALOGUE -->
+        <div id="dialogueBox">
+            <div id="speaker"></div>
+            <div id="dialogue"></div>
+            <button id="continueButton">Continue ▶</button>
+        </div>
+
+    </div>
+
+    <div id="fade"></div>
+
+</div>
+
+<script>
+
+/* =========================================================
+   PART 5 - THE ENDING
+   ========================================================= */
+
+const blackScreen = document.getElementById("blackScreen");
+const title = document.getElementById("title");
+const world = document.getElementById("world");
+const dialogueBox = document.getElementById("dialogueBox");
+const speaker = document.getElementById("speaker");
+const dialogue = document.getElementById("dialogue");
+const continueButton = document.getElementById("continueButton");
+
+const duck = document.getElementById("duck");
+const wizard = document.getElementById("wizard");
+
+const survivor1 = document.getElementById("survivor1");
+const survivor2 = document.getElementById("survivor2");
+const survivor3 = document.getElementById("survivor3");
+
+const cave = document.getElementById("cave");
+const fade = document.getElementById("fade");
+
+
+/* =========================================================
+   HELPER FUNCTIONS
+   ========================================================= */
+
+function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function blackTitle(text, duration) {
+
+    blackScreen.style.display = "flex";
+    blackScreen.style.opacity = "1";
+
+    title.textContent = text;
+
+    await wait(duration);
+}
+
+async function fadeToBlack() {
+
+    fade.style.opacity = "1";
+
+    await wait(1500);
+}
+
+async function fadeFromBlack() {
+
+    fade.style.opacity = "0";
+
+    await wait(1500);
+}
+
+function showDialogue(name, text) {
+
+    speaker.textContent = name;
+    dialogue.textContent = text;
+
+    dialogueBox.style.display = "block";
+}
+
+function hideDialogue() {
+    dialogueBox.style.display = "none";
+}
+
+
+/* =========================================================
+   DIALOGUE SYSTEM
+   ========================================================= */
+
+const conversations = [
+
+    {
+        speaker: "Wizard",
+        text: "You're finally awake..."
+    },
+
+    {
+        speaker: "Duck",
+        text: "W-Wait... where are we?"
+    },
+
+    {
+        speaker: "Wizard",
+        text: "We're outside the village."
+    },
+
+    {
+        speaker: "Duck",
+        text: "The village... It's destroyed!"
+    },
+
+    {
+        speaker: "Wizard",
+        text: "The volcano erupted while you were unconscious."
+    },
+
+    {
+        speaker: "Wizard",
+        text: "You passed out because of the eruption."
+    },
+
+    {
+        speaker: "Duck",
+        text: "But... what about the magical grapes?"
+    },
+
+    {
+        speaker: "Wizard",
+        text: "Duck... I need to tell you something."
+    },
+
+    {
+        speaker: "Wizard",
+        text: "The magical grapes aren't real."
+    },
+
+    {
+        speaker: "Duck",
+        text: "...What?"
+    },
+
+    {
+        speaker: "Wizard",
+        text: "They're only myths."
+    },
+
+    {
+        speaker: "Wizard",
+        text: "Stories made up by the people in the towns."
+    },
+
+    {
+        speaker: "Duck",
+        text: "So everything we went through..."
+    },
+
+    {
+        speaker: "Duck",
+        text: "The grapes... the dragon... the mysterious person..."
+    },
+
+    {
+        speaker: "Wizard",
+        text: "Maybe they were only dreams."
+    }
+
+];
+
+let dialogueIndex = 0;
+let waitingForClick = false;
+
+function nextDialogue() {
+
+    if (dialogueIndex < conversations.length) {
+
+        const line = conversations[dialogueIndex];
+
+        showDialogue(line.speaker, line.text);
+
+        dialogueIndex++;
+
+    } else {
+
+        continueButton.style.display = "none";
+        hideDialogue();
+
+        startFakeEnding();
+
+    }
+}
+
+continueButton.addEventListener("click", nextDialogue);
+
+
+/* =========================================================
+   START PART 5
+   ========================================================= */
+
+async function startPart5() {
+
+    /*
+        WAKE UP SCREEN
+
+        Five seconds.
+    */
+
+    await wait(5000);
+
+    blackScreen.style.opacity = "0";
+
+    await wait(1000);
+
+    blackScreen.style.display = "none";
+
+    world.style.display = "block";
+
+    /*
+        Show the first conversation.
+    */
+
+    nextDialogue();
+}
+
+
+/* =========================================================
+   THE "IT WAS ALL FAKE" SECTION
+   ========================================================= */
+
+async function startFakeEnding() {
+
+    await wait(1500);
+
+    /*
+        Screen goes black for 10 seconds.
+
+        During those 10 seconds,
+        three titles appear.
+    */
+
+    blackScreen.style.display = "flex";
+    blackScreen.style.opacity = "1";
+
+    title.textContent = "It was all FAKE";
+
+    await wait(3000);
+
+    title.textContent = "HOW DO WE GET GRAPES??";
+
+    await wait(3000);
+
+    title.textContent = "Is anything EVEN REAL?";
+
+    await wait(4000);
+
+    /*
+        10 seconds total.
+    */
+
+    blackScreen.style.opacity = "0";
+
+    await wait(1000);
+
+    blackScreen.style.display = "none";
+
+    /*
+        Survivors appear.
+    */
+
+    survivor1.style.display = "block";
+    survivor2.style.display = "block";
+    survivor3.style.display = "block";
+
+    startSurvivorScene();
+}
+
+
+/* =========================================================
+   SURVIVOR SCENE
+   ========================================================= */
+
+async function startSurvivorScene() {
+
+    await wait(1500);
+
+    showDialogue(
+        "???",
+        "HELP! PLEASE! IS ANYONE THERE?!"
+    );
+
+    continueButton.onclick = async function() {
+
+        continueButton.onclick = null;
+
+        showDialogue(
+            "Duck",
+            "Someone is still alive!"
+        );
+
+        await wait(2500);
+
+        showDialogue(
+            "Wizard",
+            "Don't worry. We'll get you somewhere safe."
+        );
+
+        await wait(2500);
+
+        showDialogue(
+            "Survivor",
+            "There's a cave nearby!"
+        );
+
+        await wait(2500);
+
+        showDialogue(
+            "Wizard",
+            "A cave...?"
+        );
+
+        await wait(2500);
+
+        /*
+            Wizard helps survivors.
+        */
+
+        survivor1.style.left = "35%";
+        survivor2.style.left = "40%";
+        survivor3.style.right = "40%";
+
+        await wait(2500);
+
+        showDialogue(
+            "Wizard",
+            "Everyone, follow me!"
+        );
+
+        await wait(2000);
+
+        /*
+            Move survivors toward cave.
+        */
+
+        cave.style.display = "block";
+
+        survivor1.style.left = "45%";
+        survivor2.style.left = "48%";
+        survivor3.style.right = "45%";
+
+        await wait(3000);
+
+        showDialogue(
+            "Duck",
+            "...Wait."
+        );
+
+        await wait(2000);
+
+        showDialogue(
+            "Duck",
+            "I've seen this cave before."
+        );
+
+        await wait(2000);
+
+        showDialogue(
+            "Duck",
+            "In my dream..."
+        );
+
+        await wait(2500);
+
+        showDialogue(
+            "Wizard",
+            "Your dream?"
+        );
+
+        await wait(2000);
+
+        showDialogue(
+            "Duck",
+            "This is the cave from Part 1."
+        );
+
+        await wait(2500);
+
+        showDialogue(
+            "Wizard",
+            "...That's impossible."
+        );
+
+        await wait(2500);
+
+        /*
+            Everything goes dark.
+        */
+
+        hideDialogue();
+
+        await fadeToBlack();
+
+        /*
+            Final title.
+        */
+
+        blackScreen.style.display = "flex";
+        blackScreen.style.opacity = "1";
+
+        title.textContent = "Is This THE END?";
+
+    };
+
+}
+
+
+/* =========================================================
+   BEGIN
+   ========================================================= */
+
+startPart5();
+
+</script>
+
+</body>
+</html>
+```
